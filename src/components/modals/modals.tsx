@@ -1,16 +1,16 @@
 import { nanoid } from 'nanoid'
 import {
-  createContext,
   For,
-  useContext,
   JSX,
-  lazy,
   ParentComponent,
+  createContext,
+  lazy,
+  useContext,
 } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import { Dynamic } from 'solid-js/web'
-import { InternalModalProps } from './types'
 import * as styles from './modals.css'
+import { InternalModalProps } from './types'
 
 const MODALS = {
   viewArtists: lazy(() => import('./view-artists/view-artists')),
@@ -19,6 +19,9 @@ const MODALS = {
   ),
   createOrRenamePlaylist: lazy(
     () => import('./create-or-rename-playlist/create-or-rename-playlist'),
+  ),
+  createRoom: lazy(
+    () => import('./create-room/create-room'),
   ),
 } as const
 

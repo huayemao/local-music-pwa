@@ -1,20 +1,20 @@
+import { nanoid } from 'nanoid'
 import { batch } from 'solid-js'
 import { createStore, produce, SetStoreFunction } from 'solid-js/store'
-import { nanoid } from 'nanoid'
+import { toast } from '~/components/toast/toast'
 import { getFilesFromDirectory } from '../../helpers/file-system'
 import { tracksParser } from '../../helpers/tracks-file-parser/tracks-file-parser'
+import { UNKNOWN_ITEM_ID } from '../../types/constants'
 import {
-  Track,
   Album,
   Artist,
-  Playlist,
-  MusicItemType,
-  UnknownTrack,
   FileWrapper,
+  MusicItemType,
+  Playlist,
+  Track,
+  UnknownTrack,
 } from '../../types/types'
-import { UNKNOWN_ITEM_ID } from '../../types/constants'
 import { createPlaylistsActions } from './create-playlists-actions'
-import { toast } from '~/components/toast/toast'
 
 export interface State {
   tracks: {
@@ -98,7 +98,9 @@ export const createEntitiesStore = () => {
     return false
   }
 
-  const filterExistingTracks = async (newTracks: readonly UnknownTrack[]) => {
+  const filterExistingTracks = async (
+    newTracks: readonly UnknownTrack[] | Track[],
+  ) => {
     const existingTracks = Object.values(state.tracks)
 
     const uniqueTracks: UnknownTrack[] = []
@@ -123,13 +125,13 @@ export const createEntitiesStore = () => {
     return uniqueTracks
   }
 
-  const addNewTracks = async (tracks: readonly UnknownTrack[]) => {
+  const addNewTracks = async (tracks: readonly UnknownTrack[] | Track[]) => {
     const newTracks = await filterExistingTracks(tracks)
 
     setState(
       produce((s) => {
         for (const track of newTracks) {
-          const id = nanoid()
+          const id = (track as Track).id || nanoid()
           s.tracks[id] = <Track>{
             ...track,
             id,
@@ -190,28 +192,7 @@ export const createEntitiesStore = () => {
     )
   }
 
-  const importTracks = async () => {
-    const files = await getFilesFromDirectory([
-      'aac',
-      'mp3',
-      'ogg',
-      'wav',
-      'flac',
-      'm4a',
-    ])
-
-    // User canceled directory picker.
-    if (!files) {
-      return
-    }
-
-    if (files.length < 1) {
-      toast({
-        message: 'Selected directory does not contain any tracks.',
-      })
-      return
-    }
-
+  async function parseTracks(files: FileWrapper[]) {
     const toastID = nanoid()
     const baseToastOptions = {
       id: toastID,
@@ -256,6 +237,31 @@ export const createEntitiesStore = () => {
     }
   }
 
+  const importTracks = async () => {
+    const files = await getFilesFromDirectory([
+      'aac',
+      'mp3',
+      'ogg',
+      'wav',
+      'flac',
+      'm4a',
+    ])
+
+    // User canceled directory picker.
+    if (!files) {
+      return
+    }
+
+    if (files.length < 1) {
+      toast({
+        message: 'Selected directory does not contain any tracks.',
+      })
+      return
+    }
+
+    await parseTracks(files)
+  }
+
   const clearData = () => {
     toast({
       message: 'Library cleared',
@@ -291,9 +297,11 @@ export const createEntitiesStore = () => {
   const actions = {
     ...playlistsActions,
     removeTracks,
+    addNewTracks,
     remove,
     importTracks,
     clearData,
+    parseTracks,
   }
 
   return [

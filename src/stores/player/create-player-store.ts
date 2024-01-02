@@ -1,9 +1,9 @@
 import { batch, createEffect, createMemo, untrack } from 'solid-js'
-import { produce, createStore } from 'solid-js/store'
-import { shuffleArray } from '../../utils/utils'
-import { Track } from '../../types/types'
-import { useEntitiesStore } from '../stores'
+import { createStore, produce } from 'solid-js/store'
 import { toast } from '~/components/toast/toast'
+import { Track } from '../../types/types'
+import { shuffleArray } from '../../utils/utils'
+import { useEntitiesStore, usePeersStore } from '../stores'
 
 export const RepeatState = {
   OFF: 0,
@@ -35,6 +35,7 @@ type TrackIds = readonly string[]
 
 export const createPlayerStore = () => {
   const [entities] = useEntitiesStore()
+  const [peer] = usePeersStore()
 
   const [state, setState] = createStore<State>({
     isPlaying: false,
@@ -61,6 +62,7 @@ export const createPlayerStore = () => {
   // If state is modified inside batch memo won't run until batch is exited,
   // so offer these selectors directly for functions that need it.
   const activeTrackIdSelector = () => state.trackIds[state.activeTrackIndex]
+  console.log(entities.tracks, activeTrackIdSelector())
   const activeTrackSelector = () =>
     entities.tracks[activeTrackIdSelector()] as Track | undefined
 
@@ -313,6 +315,18 @@ export const createPlayerStore = () => {
     })
   }
 
+  const syncFromHost = () => {
+    console.log('sync')
+    if (peer.hostPlayerSateMessage) {
+      const { data, meta } = peer.hostPlayerSateMessage
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
+      setState({
+        ...data,
+        currentTime: data.currentTime + 0.25 + (Date.now() - meta.time) / 1000,
+      })
+    }
+  }
+
   // TODO. This is broken.
   createEffect(() => {
     const { tracks } = entities
@@ -347,6 +361,7 @@ export const createPlayerStore = () => {
     setDuration,
     setVolume,
     addToQueue,
+    syncFromHost,
   }
 
   const persistedItems = [

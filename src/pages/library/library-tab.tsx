@@ -1,10 +1,13 @@
 import { createMemo, VoidComponent } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
-import { sortByKey } from '../../utils'
-import { useEntitiesStore, useLibraryStore } from '../../stores/stores'
-import { BaseMusicItem, MusicItemType, Track } from '../../types/types'
-import { LibraryPageConfig } from './config'
 import { ScrollContainer } from '../../components/scroll-container/scroll-container'
+import {
+  useEntitiesStore,
+  useLibraryStore
+} from '../../stores/stores'
+import { BaseMusicItem, MusicItemType, Track } from '../../types/types'
+import { sortByKey } from '../../utils'
+import { LibraryPageConfig } from './config'
 import * as styles from './library.css'
 
 export const LibraryPage: VoidComponent<LibraryPageConfig> = (props) => {

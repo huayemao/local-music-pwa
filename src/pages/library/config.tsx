@@ -1,9 +1,9 @@
-import { JSX } from 'solid-js'
 import { useNavigate } from 'solid-app-router'
-import { MusicItemKey } from '~/types/types'
+import { JSX } from 'solid-js'
+import * as configs from '~/base-page-configs'
 import { Icon, IconType } from '~/components/icon/icon'
 import { useModals } from '~/components/modals/modals'
-import * as configs from '~/base-page-configs'
+import { MusicItemKey } from '~/types/types'
 import * as styles from './library.css'
 
 interface SortItem {
@@ -36,6 +36,8 @@ const CreateNewPlaylistButton = () => {
     </button>
   )
 }
+
+
 
 export const CONFIG: readonly LibraryPageConfig[] = [
   {

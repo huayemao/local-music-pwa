@@ -1,11 +1,11 @@
 import { VoidComponent } from 'solid-js'
-import { TracksList } from './components/entities-lists/tracks-list/tracks-list'
-import { MusicItemType } from './types/types'
-import { PlaylistList } from './components/entities-lists/playlists-list/playlists-list'
 import {
   AlbumsGrid,
   ArtistsGrid,
 } from './components/entities-lists/albums-artists-grids'
+import { PlaylistList } from './components/entities-lists/playlists-list/playlists-list'
+import { TracksList } from './components/entities-lists/tracks-list/tracks-list'
+import { MusicItemType } from './types/types'
 
 export interface BaseListProps {
   items: readonly string[]

@@ -1,8 +1,9 @@
 import { createContext, ParentComponent, useContext } from 'solid-js'
 import { createEntitiesStore } from './entities/create-entities-store'
 import { createLibraryStore } from './library/create-library-store'
+import { createPeersStore } from './peers/create-peers-store'
+import { PersistStoresProps, PersistStoresProvider } from './persist-stores'
 import { createPlayerStore } from './player/create-player-store'
-import { PersistStoresProvider, PersistStoresProps } from './persist-stores'
 
 function createStoreCtx<T>(createStoreFn: () => T) {
   const StoreContext = createContext<T>()
@@ -24,8 +25,9 @@ function createStoreCtx<T>(createStoreFn: () => T) {
 const [EntitiesProvider, useEntitiesStore] = createStoreCtx(createEntitiesStore)
 const [LibraryProvider, useLibraryStore] = createStoreCtx(createLibraryStore)
 const [PlayerProvider, usePlayerStore] = createStoreCtx(createPlayerStore)
+const [PeersProvider, usePeersStore] = createStoreCtx(createPeersStore)
 
-export { useEntitiesStore, useLibraryStore, usePlayerStore }
+export { useEntitiesStore, useLibraryStore, usePeersStore, usePlayerStore }
 
 // Only change version if there are breaking changes
 // with persisted data. Changing version number
@@ -37,16 +39,18 @@ export const RootStoresProvider: ParentComponent<
   Pick<PersistStoresProps, 'onLoad'>
 > = (props) => (
   <EntitiesProvider>
-    <LibraryProvider>
-      <PlayerProvider>
-        <PersistStoresProvider
-          storageName={APP_STORAGE_NAME}
-          version={APP_STORAGE_VERSION}
-          useStores={[useEntitiesStore, useLibraryStore, usePlayerStore]}
-        >
-          {props.children}
-        </PersistStoresProvider>
-      </PlayerProvider>
-    </LibraryProvider>
+    <PeersProvider>
+      <LibraryProvider>
+        <PlayerProvider>
+          <PersistStoresProvider
+            storageName={APP_STORAGE_NAME}
+            version={APP_STORAGE_VERSION}
+            useStores={[useEntitiesStore, useLibraryStore, usePlayerStore]}
+          >
+            {props.children}
+          </PersistStoresProvider>
+        </PlayerProvider>
+      </LibraryProvider>
+    </PeersProvider>
   </EntitiesProvider>
 )
