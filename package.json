@@ -50,6 +50,7 @@
     "idb-keyval": "^6.1.0",
     "music-metadata": "^7.12.3",
     "nanoid": "^3.3.4",
+    "peerjs": "^1.5.2",
     "solid-app-router": "^0.3.2",
     "solid-js": "^1.4.1",
     "solid-utils": "^0.8.1"

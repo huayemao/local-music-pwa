@@ -1,13 +1,12 @@
+import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import path from 'node:path'
 import { defineConfig } from 'vite'
-import solidPlugin from 'vite-plugin-solid'
-import { vanillaExtractPlugin } from '@vanilla-extract/vite-plugin'
 import { createHtmlPlugin } from 'vite-plugin-html'
-import { ViteWebfontDownload } from 'vite-plugin-webfont-dl'
-import manifest from './package.json'
-import { mangleClassNames } from './lib/vite-mangle-classnames'
+import solidPlugin from 'vite-plugin-solid'
 import { injectScriptsToHtmlDuringBuild } from './lib/vite-inject-scripts-to-html'
+import { mangleClassNames } from './lib/vite-mangle-classnames'
 import { serviceWorker } from './lib/vite-service-worker'
+import manifest from './package.json'
 
 const createMScreenshot = (name: string, sizes: string) => ({
   sizes,
@@ -70,9 +69,9 @@ export default defineConfig({
     solidPlugin({
       hot: false,
     }),
-    ViteWebfontDownload([
-      'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500&display=swap',
-    ]),
+    // ViteWebfontDownload([
+    //   'https://fonts.googleapis.com/css2?family=Fira+Sans:wght@400;500&display=swap',
+    // ]),
     serviceWorker({
       manifest: {
         short_name: 'Snae',
