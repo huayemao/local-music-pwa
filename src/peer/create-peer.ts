@@ -26,7 +26,59 @@ export const usePeer: () => void = () => {
           if (!id) {
             reject()
           }
-          const p = new Peer(state.me?.id as string)
+          const p = new Peer(state.me?.id as string, {
+            config: {
+              iceTransportPolicy: 'relay',
+              iceServers: [
+                {
+                  url: 'stun:hk-turn1.xirsys.com',
+                },
+                // {
+                //   urls: 'stun:stun.softjoys.com',
+                // },
+                // {
+                //   urls: 'stun:stun.voipbuster.com:3478',
+                // },
+
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turn:hk-turn1.xirsys.com:80?transport=udp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turn:hk-turn1.xirsys.com:3478?transport=udp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turn:hk-turn1.xirsys.com:80?transport=tcp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turn:hk-turn1.xirsys.com:3478?transport=tcp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turns:hk-turn1.xirsys.com:443?transport=tcp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+                {
+                  username:
+                    '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  url: 'turns:hk-turn1.xirsys.com:5349?transport=tcp',
+                  credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                },
+              ],
+            },
+          })
           p.on('open', () => {
             resolve(p)
           })
@@ -145,6 +197,10 @@ export const usePeer: () => void = () => {
       })
       conn.on('error', console.error)
     } else {
+      conn.on('open', () => {
+        console.log('conn opened')
+        conn.send(state.me)
+      })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
           comingTracks: { id: string; name: string; duration: number }[],
@@ -249,6 +305,7 @@ export const usePeer: () => void = () => {
       return
     }
 
+    console.log('syncing change to peer')
     const currentTracks = Object.values(entities.tracks)
       .filter((t) => player.trackIds.includes(t.id))
       .map((e) => ({
