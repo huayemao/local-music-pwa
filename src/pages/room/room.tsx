@@ -17,7 +17,7 @@ const CreateRoomButton = () => {
       }}
     >
       <Icon icon='plus' />
-      创建房间
+      Create a Room
     </button>
   )
 }
@@ -33,7 +33,7 @@ const JoinRoomButton = () => {
       }}
     >
       <Icon icon='plus' />
-      加入房间
+      Join a Room
     </button>
   )
 }
@@ -42,7 +42,7 @@ const Room = (): JSXElement => {
   const [data] = usePeersStore()
 
   return (
-    <Scaffold title='共享' scrollable>
+    <Scaffold title='Co-Tune' scrollable>
       <ScrollContainer observeScrollState>
         {
           <div style={{ 'justify-content': 'flex-end' }}>

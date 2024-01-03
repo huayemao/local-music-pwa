@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useMatch, useNavigate } from 'solid-app-router'
-import { createMemo, createSignal, For, JSXElement, Show } from 'solid-js'
+import { For, JSXElement, Show, createMemo, createSignal } from 'solid-js'
 import { AppTopBar } from '~/components/app-top-bar/app-top-bar'
 import { CSSTransition } from '~/components/css-transition/css-transition'
 import { IconButton } from '~/components/icon-button/icon-button'
@@ -11,7 +11,7 @@ import { createMediaQuery } from '~/helpers/hooks/create-media-query'
 import { useMapRouteToValue } from '~/helpers/router-match'
 import { useEntitiesStore, useLibraryStore } from '~/stores/stores'
 import { MusicItemType } from '~/types/types'
-import { clx, IS_DEVICE_A_MOBILE } from '~/utils'
+import { IS_DEVICE_A_MOBILE, clx } from '~/utils'
 import { CONFIG, LibraryPageConfig } from './config'
 import * as styles from './library.css'
 
@@ -40,6 +40,10 @@ const TopBar = (props: TopBar) => {
         {
           name: 'About',
           action: () => navigate('/about'),
+        },
+        {
+          name: 'Co-Tune',
+          action: () => navigate('/room'),
         },
       ],
       e.target as HTMLElement,
@@ -122,11 +126,6 @@ const TopBar = (props: TopBar) => {
         icon='moreVertical'
         title='More actions'
         onClick={onMenuClickHandler}
-      />
-      <IconButton
-        icon='moreVertical'
-        title='共享'
-        onClick={() => navigate('/room')}
       />
     </AppTopBar>
   )
