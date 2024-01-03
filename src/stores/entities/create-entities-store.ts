@@ -192,7 +192,7 @@ export const createEntitiesStore = () => {
     )
   }
 
-  async function parseTracks(files: FileWrapper[]) {
+  async function parseTracks(files: FileWrapper[]): Promise<UnknownTrack[]> {
     const toastID = nanoid()
     const baseToastOptions = {
       id: toastID,
@@ -226,6 +226,8 @@ export const createEntitiesStore = () => {
           controls: undefined,
         })
       })
+
+      return newTracks
     } catch (err) {
       console.error(err)
       toast({
@@ -235,6 +237,7 @@ export const createEntitiesStore = () => {
         controls: undefined,
       })
     }
+    return []
   }
 
   const importTracks = async () => {
