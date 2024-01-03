@@ -65,11 +65,13 @@ export const usePeer: () => void = () => {
       return
     }
     const currentTracks = untrack(() =>
-      Object.values(entities.tracks).map((e) => ({
-        id: e.id,
-        name: e.name,
-        duration: e.duration,
-      })),
+      Object.values(entities.tracks)
+        .filter((t) => player.trackIds.includes(t.id))
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          duration: e.duration,
+        })),
     )
     if (state.me.id === state.host.id) {
       conn.on('open', () => {
@@ -146,11 +148,8 @@ export const usePeer: () => void = () => {
               trackIds: lackTracks,
             },
           })
-          
+
           playerActions.syncFromHost()
-
-
-          console.log(state)
         }
 
         if (d instanceof Uint8Array) {
@@ -165,6 +164,48 @@ export const usePeer: () => void = () => {
         }
       })
       conn.on('error', console.error)
+    }
+  })
+
+  createEffect(() => {
+    if (!(state.host && state.me)) {
+      return
+    }
+    const conn = connection()
+    if (!conn) {
+      return
+    }
+
+    if (state.me.id === state.host.id) {
+      const currentTracks = Object.values(entities.tracks)
+        .filter((t) => player.trackIds.includes(t.id))
+        .map((e) => ({
+          id: e.id,
+          name: e.name,
+          duration: e.duration,
+        }))
+
+      const currentTime = untrack(() => player.currentTime)
+
+      const currentPlayerState = {
+        activeTrackIndex: player.activeTrackIndex,
+        isPlaying: player.isPlaying,
+        trackIds: player.trackIds,
+        currentTime,
+        duration: player.duration,
+        currentTimeChanged: true,
+      }
+
+      const data = {
+        type: 'state',
+        data: currentPlayerState,
+        meta: {
+          tracks: currentTracks,
+          time: Date.now(),
+        },
+      }
+
+      conn.send(data)
     }
   })
 }

@@ -316,7 +316,6 @@ export const createPlayerStore = () => {
   }
 
   const syncFromHost = () => {
-    console.log('sync')
     if (peer.hostPlayerSateMessage) {
       const { data, meta } = peer.hostPlayerSateMessage
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
