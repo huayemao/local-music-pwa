@@ -190,7 +190,6 @@ export const usePeer: () => void = () => {
           const file = new File([blob], 'import')
           entityActions.parseTracks([{ type: 'file', file }]).then((tracks) => {
             if (state.hostPlayerSateMessage) {
-              console.log(111, state.hostPlayerSateMessage)
               // ts-ignore
               updateLocalTrackIds(
                 state.hostPlayerSateMessage.meta.tracks,
@@ -216,41 +215,43 @@ export const usePeer: () => void = () => {
     if (!(state.host && state.me)) {
       return
     }
+
+    if (!(state.me.id === state.host.id)) {
+      return
+    }
     const conn = connection()
-    if (!conn || !conn.open) {
+    if (!conn) {
       return
     }
 
-    if (state.me.id === state.host.id) {
-      const currentTracks = Object.values(entities.tracks)
-        .filter((t) => player.trackIds.includes(t.id))
-        .map((e) => ({
-          id: e.id,
-          name: e.name,
-          duration: e.duration,
-        }))
+    const currentTracks = Object.values(entities.tracks)
+      .filter((t) => player.trackIds.includes(t.id))
+      .map((e) => ({
+        id: e.id,
+        name: e.name,
+        duration: e.duration,
+      }))
 
-      const currentTime = untrack(() => player.currentTime)
+    const currentTime = untrack(() => player.currentTime)
 
-      const currentPlayerState = {
-        activeTrackIndex: player.activeTrackIndex,
-        isPlaying: player.isPlaying,
-        trackIds: player.trackIds,
-        currentTime,
-        duration: player.duration,
-        currentTimeChanged: true,
-      }
-
-      const data = {
-        type: 'state',
-        data: currentPlayerState,
-        meta: {
-          tracks: currentTracks,
-          time: Date.now(),
-        },
-      }
-
-      conn.send(data)
+    const currentPlayerState = {
+      activeTrackIndex: player.activeTrackIndex,
+      isPlaying: player.isPlaying,
+      trackIds: player.trackIds,
+      currentTime,
+      duration: player.duration,
+      currentTimeChanged: true,
     }
+
+    const data = {
+      type: 'state',
+      data: currentPlayerState,
+      meta: {
+        tracks: currentTracks,
+        time: Date.now(),
+      },
+    }
+
+    conn.send(data)
   })
 }
