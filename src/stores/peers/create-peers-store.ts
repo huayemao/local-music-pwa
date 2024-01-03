@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid'
 import { batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
 
@@ -49,7 +48,7 @@ export const createPeersStore = () => {
     batch(() => {
       setState({
         me: {
-          id: username + nanoid(4),
+          id: username,
           displayName: username,
         },
         host: {
@@ -62,7 +61,7 @@ export const createPeersStore = () => {
 
   const createRoom = (username: string) => {
     batch(() => {
-      const id = username + nanoid(4)
+      const id = username
       const user = {
         id,
         displayName: username,
