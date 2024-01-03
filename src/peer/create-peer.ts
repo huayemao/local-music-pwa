@@ -113,8 +113,33 @@ export const usePeer: () => void = () => {
           const { trackIds } = d.data as { trackIds: string[] }
           for (const trackId of trackIds) {
             const track = entities.tracks[trackId]
+            // todo: fileHandle 需要先获取文件
             console.log(track.fileWrapper.file)
-            conn.send(track.fileWrapper.file)
+
+            if (track.fileWrapper.type === 'file') {
+              conn.send(track.fileWrapper.file)
+            } else {
+              const fileRef = track.fileWrapper.file
+
+              fileRef.queryPermission({ mode: 'read' }).then(async (mode) => {
+                if (mode !== 'granted') {
+                  try {
+                    // Try to request permission if it's not denied.
+                    if (mode === 'prompt') {
+                      mode = await fileRef.requestPermission({ mode: 'read' })
+                    }
+                  } catch {
+                    // User activation is required to request permission. Catch the error.
+                  }
+
+                  if (mode !== 'granted') {
+                    return null
+                  }
+                }
+                conn.send(await fileRef.getFile())
+                return null
+              })
+            }
           }
         }
       })
