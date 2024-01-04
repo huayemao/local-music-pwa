@@ -26,6 +26,7 @@ interface User {
 }
 
 interface State {
+  stage: 'idle' | 'initiating' | 'initiated' | 'connected' | 'open' | 'failed'
   me: User | null
   host: User | null
   hostPlayerSateMessage: PlayerStateMessage | null
@@ -34,6 +35,7 @@ interface State {
 
 export const createPeersStore = () => {
   const [state, setState] = createStore<State>({
+    stage: 'idle',
     me: null,
     host: null,
     hostPlayerSateMessage: null,
@@ -77,7 +79,7 @@ export const createPeersStore = () => {
     join,
     createRoom,
     setHostPlayerState,
-    setState
+    setState,
   }
 
   return [state, actions] as const

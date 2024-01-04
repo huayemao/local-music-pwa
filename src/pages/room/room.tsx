@@ -1,4 +1,4 @@
-import { For, JSXElement } from 'solid-js'
+import { For, JSXElement, Show } from 'solid-js'
 import { Icon } from '~/components/icon/icon'
 import { List } from '~/components/list/list'
 import { useModals } from '~/components/modals/modals'
@@ -29,6 +29,7 @@ const JoinRoomButton = () => {
   return (
     <button
       class={sharedStyles.outlinedButton}
+      style={{ margin: '0 2em 0' }}
       onClick={() => {
         modals.createRoom.show({ type: 'join' })
       }}
@@ -45,13 +46,45 @@ const Room = (): JSXElement => {
   return (
     <Scaffold title='Co-Tune' scrollable>
       <ScrollContainer observeScrollState>
-        {
-          <div style={{ 'justify-content': 'flex-end' }}>
-            <CreateRoomButton />
-            <JoinRoomButton />
-          </div>
-        }
-        <div>{data.me?.id}</div>
+        <Show
+          when={data.stage !== 'idle'}
+          fallback={
+            <div
+              style={{
+                height: '100%',
+                display: 'flex',
+                'align-items': 'center',
+                'justify-content': 'center',
+              }}
+            >
+              <div
+                style={{
+                  'max-height': '300px',
+                  display: 'flex',
+                  'justify-content': 'center',
+                }}
+              >
+                <CreateRoomButton />
+                <JoinRoomButton />
+              </div>
+            </div>
+          }
+        >
+          {data.stage === 'initiating' && <div>creating</div>}
+          {data.stage === 'initiated' && (
+            <div>
+              <div>Room Id: {data.me?.id}</div>
+              <div>waiting for connection...</div>
+            </div>
+          )}
+          {data.stage === 'connected' && (
+            <div>
+              <div>Room Id: {data.me?.id}</div>
+              <div>waiting for data...</div>
+            </div>
+          )}
+          {data.stage === 'open' && <div>todo: renderList</div>}
+        </Show>
         <List>
           <For each={Object.values(data.members)}>
             {(mb) => <div class={sharedStyles.listItem}>{mb.displayName}</div>}

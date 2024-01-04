@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import Peer, { DataConnection } from 'peerjs'
 import { createEffect, createSignal, untrack } from 'solid-js'
+import { toast } from '~/components/toast/toast'
 import { PlayerStateMessage } from '~/stores/peers/create-peers-store'
 import {
   useEntitiesStore,
@@ -21,99 +22,111 @@ export const usePeer: () => void = () => {
   createEffect(async () => {
     if (state.host && state.me) {
       if (!peer) {
-        peer = await new Promise<Peer>((resolve, reject) => {
-          const id = state.me?.id
-          if (!id) {
-            reject()
-          }
-          const p = new Peer(state.me?.id as string, {
-            config: {
-              // iceTransportPolicy: 'relay',
-              iceServers: [
-                // {
-                //   urls: 'stun:hk-turn1.xirsys.com',
-                // },
-                // {
-                //   urls: 'stun:stun.softjoys.com',
-                // },
-                // {
-                //   urls: 'stun:stun.voipbuster.com:3478',
-                // },
-                {
-                  username:
-                    'EvcKbZMh4KduyQon1Bessr9YSruwyUJ9Jb2jHeCRp1pZwNGMauzxecSVJE0bIvmcAAAAAGWWTJBodWF5ZW1hbw==',
-                  urls: [
-                    'stun:hk-turn1.xirsys.com',
-                    'turn:hk-turn1.xirsys.com:80?transport=udp',
-                    'turn:hk-turn1.xirsys.com:3478?transport=udp',
-                    'turn:hk-turn1.xirsys.com:80?transport=tcp',
-                    'turn:hk-turn1.xirsys.com:3478?transport=tcp',
-                    'turns:hk-turn1.xirsys.com:443?transport=tcp',
-                    'turns:hk-turn1.xirsys.com:5349?transport=tcp',
-                  ],
-                  credential: '6568f5f6-aac8-11ee-9a24-0242ac120004',
-                },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turn:hk-turn1.xirsys.com:80?transport=udp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turn:hk-turn1.xirsys.com:3478?transport=udp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turn:hk-turn1.xirsys.com:80?transport=tcp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turn:hk-turn1.xirsys.com:3478?transport=tcp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turns:hk-turn1.xirsys.com:443?transport=tcp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-                // {
-                //   username:
-                //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                //   url: 'turns:hk-turn1.xirsys.com:5349?transport=tcp',
-                //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                // },
-              ],
-            },
-          })
-          p.on('open', () => {
-            resolve(p)
-          })
-          p.on('error', (e) => {
-            reject(e)
-          })
-        })
-
-        if (state.me.id === state.host.id) {
-          const x = await new Promise((resolve) => {
-            if (!peer) {
-              return
+        try {
+          peerActions.setState('stage', 'initiating')
+          peer = await new Promise<Peer>((resolve, reject) => {
+            const id = state.me?.id
+            if (!id) {
+              reject()
             }
-            peer.on('connection', (conn) => {
-              console.log('conn received', conn)
-              setConnection(conn)
-              resolve(conn)
+            const p = new Peer(state.me?.id as string, {
+              config: {
+                // iceTransportPolicy: 'relay',
+                iceServers: [
+                  // {
+                  //   urls: 'stun:hk-turn1.xirsys.com',
+                  // },
+                  // {
+                  //   urls: 'stun:stun.softjoys.com',
+                  // },
+                  // {
+                  //   urls: 'stun:stun.voipbuster.com:3478',
+                  // },
+                  {
+                    username:
+                      'EvcKbZMh4KduyQon1Bessr9YSruwyUJ9Jb2jHeCRp1pZwNGMauzxecSVJE0bIvmcAAAAAGWWTJBodWF5ZW1hbw==',
+                    urls: [
+                      'stun:hk-turn1.xirsys.com',
+                      'turn:hk-turn1.xirsys.com:80?transport=udp',
+                      'turn:hk-turn1.xirsys.com:3478?transport=udp',
+                      'turn:hk-turn1.xirsys.com:80?transport=tcp',
+                      'turn:hk-turn1.xirsys.com:3478?transport=tcp',
+                      'turns:hk-turn1.xirsys.com:443?transport=tcp',
+                      'turns:hk-turn1.xirsys.com:5349?transport=tcp',
+                    ],
+                    credential: '6568f5f6-aac8-11ee-9a24-0242ac120004',
+                  },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turn:hk-turn1.xirsys.com:80?transport=udp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turn:hk-turn1.xirsys.com:3478?transport=udp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turn:hk-turn1.xirsys.com:80?transport=tcp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turn:hk-turn1.xirsys.com:3478?transport=tcp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turns:hk-turn1.xirsys.com:443?transport=tcp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                  // {
+                  //   username:
+                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
+                  //   url: 'turns:hk-turn1.xirsys.com:5349?transport=tcp',
+                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
+                  // },
+                ],
+              },
+            })
+            p.on('open', () => {
+              resolve(p)
+            })
+            p.on('error', (e) => {
+              reject(e)
             })
           })
-        } else {
-          const conn = peer.connect(state.host.id)
-          setConnection(conn)
+          peerActions.setState('stage', 'initiated')
+
+          if (state.me.id === state.host.id) {
+            const conn = await new Promise<DataConnection>(
+              (resolve, reject) => {
+                ;(peer as Peer).on('connection', (_conn) => {
+                  console.log('conn received', _conn)
+                  resolve(_conn)
+                })
+              },
+            )
+            setConnection(conn)
+          } else {
+            const conn = peer.connect(state.host.id)
+            setConnection(conn)
+          }
+          peerActions.setState('stage', 'connected')
+        } catch (error) {
+          toast({
+            message: `fail to init, most possibly unstable network issue, please have a try later\n${
+              error as string
+            }`,
+            duration: false,
+          })
+          peerActions.setState({ stage: 'failed' })
         }
       } else {
         peer.disconnect()
@@ -140,17 +153,10 @@ export const usePeer: () => void = () => {
         })),
     )
 
-    const allTracks = untrack(() =>
-      Object.values(entities.tracks).map((e) => ({
-        id: e.id,
-        name: e.name,
-        duration: e.duration,
-      })),
-    )
-
     if (state.me.id === state.host.id) {
       conn.on('open', () => {
         console.log('conn opened')
+        peerActions.setState('stage', 'open')
         const currentPlayerState = untrack(() => ({
           activeTrackIndex: player.activeTrackIndex,
           isPlaying: player.isPlaying,
@@ -209,6 +215,7 @@ export const usePeer: () => void = () => {
         }
         // @ts-ignore
         else if (d.type === 'user') {
+          console.log('get user data', d)
           const { data } = d as {
             type: string
             data: { displayname: string; id: string }
@@ -220,7 +227,8 @@ export const usePeer: () => void = () => {
     } else {
       conn.on('open', () => {
         console.log('conn opened')
-        conn.send({ type: 'user', data: state.me })
+        peerActions.setState('stage', 'open')
+        conn.send({ type: 'user', data: JSON.parse(JSON.stringify(state.me)) as object})
       })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
@@ -299,7 +307,6 @@ export const usePeer: () => void = () => {
                 // 并不是,parse 完了是有
                 Object.values(tracks),
               ).then(() => {
-                console.log('fff')
                 receiveQueue.push(1)
                 if (receiveQueue.length === 1) {
                   playerActions.syncFromHost()
@@ -355,9 +362,8 @@ export const usePeer: () => void = () => {
       },
     }
 
-    if(conn.open){
+    if (conn.open) {
       conn.send(data)
     }
-
   })
 }
