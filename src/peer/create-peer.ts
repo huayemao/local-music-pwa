@@ -2,13 +2,31 @@
 import Peer, { DataConnection } from 'peerjs'
 import { createEffect, createSignal, untrack } from 'solid-js'
 import { toast } from '~/components/toast/toast'
+import { tracksParser } from '~/helpers/tracks-file-parser/tracks-file-parser'
 import { PlayerStateMessage, User } from '~/stores/peers/create-peers-store'
 import {
   useEntitiesStore,
   usePeersStore,
   usePlayerStore,
 } from '~/stores/stores'
+import { UnknownTrack } from '~/types/types'
 import { config } from './config'
+
+function getTrackId(
+  t: UnknownTrack,
+  comingTracks: readonly Readonly<{
+    id: string
+    name: string
+    duration: number
+  }>[],
+) {
+  for (const track of comingTracks) {
+    if (t.name === track.name && t.duration === track.duration) {
+      return track.id
+    }
+  }
+  throw Error("cannot find matching track")
+}
 
 export const usePeer: () => void = () => {
   let peer: Peer | null = null
@@ -107,20 +125,20 @@ export const usePeer: () => void = () => {
         console.log('conn opened')
         peerActions.setState('stage', 'open')
         const stateMessage = untrack(() => ({
-            type: 'state',
-            data: {
-              activeTrackIndex: player.activeTrackIndex,
-              isPlaying: player.isPlaying,
-              trackIds: player.trackIds,
-              currentTime: player.currentTime,
-              duration: player.duration,
-              currentTimeChanged: true,
-            },
-            meta: {
-              tracks: currentTracks,
-              time: Date.now(),
-            },
-          }))
+          type: 'state',
+          data: {
+            activeTrackIndex: player.activeTrackIndex,
+            isPlaying: player.isPlaying,
+            trackIds: player.trackIds,
+            currentTime: player.currentTime,
+            duration: player.duration,
+            currentTimeChanged: true,
+          },
+          meta: {
+            tracks: currentTracks,
+            time: Date.now(),
+          },
+        }))
 
         conn.send(stateMessage)
       })
@@ -255,18 +273,29 @@ export const usePeer: () => void = () => {
         if (d instanceof Uint8Array) {
           const blob = new Blob([d])
           const file = new File([blob], 'import')
-          entityActions.parseTracks([{ type: 'file', file }]).then((tracks) => {
-            if (state.hostPlayerSateMessage) {
-              updateLocalTrackIds(
-                state.hostPlayerSateMessage.meta.tracks,
-                Object.values(tracks),
-              ).then(() => {
-                receiveQueue.push(1)
-                if (receiveQueue.length === 1) {
-                  playerActions.syncFromHost()
-                }
+
+          tracksParser([{ type: 'file', file }], console.log).then((tracks) => {
+            const newTracks = tracks.map((e) => {
+              if (!state.hostPlayerSateMessage) {
+                throw Error('')
+              }
+              const id = getTrackId(e, state.hostPlayerSateMessage.meta.tracks)
+              return {
+                ...e,
+                id,
+              }
+            })
+            entityActions.addNewTracks(newTracks).then(() => {
+              receiveQueue.push(1)
+              toast({
+                message: `Successfully imported or uptated ${newTracks.length} tracks to the library.`,
+                duration: 4000,
+                controls: undefined,
               })
-            }
+              if (receiveQueue.length === 1) {
+                playerActions.syncFromHost()
+              }
+            })
           })
         }
       })

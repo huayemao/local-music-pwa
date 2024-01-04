@@ -126,7 +126,7 @@ export const createEntitiesStore = () => {
   }
 
   const addNewTracks = async (
-    tracks: readonly UnknownTrack[] | Track[],
+    tracks: readonly (UnknownTrack & { id?: string })[],
   ): Promise<Track[]> => {
     const newTracks = await filterExistingTracks(tracks)
 
@@ -311,7 +311,7 @@ export const createEntitiesStore = () => {
     remove,
     importTracks,
     clearData,
-    parseTracks: parseAndAddTracks,
+    parseAndAddTracks,
   }
 
   return [
