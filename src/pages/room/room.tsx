@@ -44,7 +44,7 @@ const Room = (): JSXElement => {
   const [data] = usePeersStore()
 
   return (
-    <Scaffold title='Co-Tune' scrollable>
+    <Scaffold title='Coplay' scrollable>
       <ScrollContainer observeScrollState>
         <Show
           when={data.stage !== 'idle'}

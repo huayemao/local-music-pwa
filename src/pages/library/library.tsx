@@ -42,7 +42,7 @@ const TopBar = (props: TopBar) => {
           action: () => navigate('/about'),
         },
         {
-          name: 'Co-Tune',
+          name: 'Coplay',
           action: () => navigate('/room'),
         },
       ],

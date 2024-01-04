@@ -157,25 +157,27 @@ export const usePeer: () => void = () => {
       conn.on('open', () => {
         console.log('conn opened')
         peerActions.setState('stage', 'open')
-        const currentPlayerState = untrack(() => ({
-          activeTrackIndex: player.activeTrackIndex,
-          isPlaying: player.isPlaying,
-          trackIds: player.trackIds,
-          currentTime: player.currentTime,
-          duration: player.duration,
-          currentTimeChanged: true,
-        }))
+        const stateMessage = untrack(() => {
+          const currentPlayerState = {
+            activeTrackIndex: player.activeTrackIndex,
+            isPlaying: player.isPlaying,
+            trackIds: player.trackIds,
+            currentTime: player.currentTime,
+            duration: player.duration,
+            currentTimeChanged: true,
+          }
 
-        const data = {
-          type: 'state',
-          data: currentPlayerState,
-          meta: {
-            tracks: currentTracks,
-            time: Date.now(),
-          },
-        }
+          return {
+            type: 'state',
+            data: currentPlayerState,
+            meta: {
+              tracks: currentTracks,
+              time: Date.now(),
+            },
+          }
+        })
 
-        conn.send(data)
+        conn.send(stateMessage)
       })
       conn.on('data', (d) => {
         // @ts-ignore
@@ -228,7 +230,10 @@ export const usePeer: () => void = () => {
       conn.on('open', () => {
         console.log('conn opened')
         peerActions.setState('stage', 'open')
-        conn.send({ type: 'user', data: JSON.parse(JSON.stringify(state.me)) as object})
+        conn.send({
+          type: 'user',
+          data: JSON.parse(JSON.stringify(state.me)) as object,
+        })
       })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
