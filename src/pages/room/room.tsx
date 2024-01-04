@@ -40,6 +40,9 @@ const JoinRoomButton = () => {
   )
 }
 
+// todo: host and guest page
+// todo: back to idle, revoke pages
+
 const Room = (): JSXElement => {
   const [data] = usePeersStore()
 

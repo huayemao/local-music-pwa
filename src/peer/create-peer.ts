@@ -4,9 +4,9 @@ import { createEffect, createSignal, untrack } from 'solid-js'
 import { toast } from '~/components/toast/toast'
 import { PlayerStateMessage, User } from '~/stores/peers/create-peers-store'
 import {
-    useEntitiesStore,
-    usePeersStore,
-    usePlayerStore,
+  useEntitiesStore,
+  usePeersStore,
+  usePlayerStore,
 } from '~/stores/stores'
 import { config } from './config'
 
@@ -61,7 +61,7 @@ export const usePeer: () => void = () => {
           {
             title: 'Retry',
             action: () => {
-              createPeer(me,host)
+              createPeer(me, host)
             },
           },
         ],
@@ -106,25 +106,21 @@ export const usePeer: () => void = () => {
       conn.on('open', () => {
         console.log('conn opened')
         peerActions.setState('stage', 'open')
-        const stateMessage = untrack(() => {
-          const currentPlayerState = {
-            activeTrackIndex: player.activeTrackIndex,
-            isPlaying: player.isPlaying,
-            trackIds: player.trackIds,
-            currentTime: player.currentTime,
-            duration: player.duration,
-            currentTimeChanged: true,
-          }
-
-          return {
+        const stateMessage = untrack(() => ({
             type: 'state',
-            data: currentPlayerState,
+            data: {
+              activeTrackIndex: player.activeTrackIndex,
+              isPlaying: player.isPlaying,
+              trackIds: player.trackIds,
+              currentTime: player.currentTime,
+              duration: player.duration,
+              currentTimeChanged: true,
+            },
             meta: {
               tracks: currentTracks,
               time: Date.now(),
             },
-          }
-        })
+          }))
 
         conn.send(stateMessage)
       })
@@ -186,7 +182,11 @@ export const usePeer: () => void = () => {
       })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
-          comingTracks: readonly Readonly<{ id: string; name: string; duration: number }>[],
+          comingTracks: readonly Readonly<{
+            id: string
+            name: string
+            duration: number
+          }>[],
           existingTracks: { id?: string; name: string; duration: number }[],
         ) {
           for (const t of comingTracks) {
@@ -209,8 +209,8 @@ export const usePeer: () => void = () => {
                 console.log(`d ${track.id || ''}`)
                 console.log(`a ${t.id}`)
 
-                if(track.id){
-                    entityActions.removeTracks([track.id])
+                if (track.id) {
+                  entityActions.removeTracks([track.id])
                 }
                 // 需要先刪除，否则会由于文件名重复导致无法创建成功
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -304,7 +304,7 @@ export const usePeer: () => void = () => {
       trackIds: player.trackIds,
       currentTime,
       duration: player.duration,
-      currentTimeChanged: true,
+      currentTimeChanged: player.currentTimeChanged,
     }
 
     const data = {
