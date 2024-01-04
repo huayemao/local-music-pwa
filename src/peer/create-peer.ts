@@ -2,12 +2,13 @@
 import Peer, { DataConnection } from 'peerjs'
 import { createEffect, createSignal, untrack } from 'solid-js'
 import { toast } from '~/components/toast/toast'
-import { PlayerStateMessage } from '~/stores/peers/create-peers-store'
+import { PlayerStateMessage, User } from '~/stores/peers/create-peers-store'
 import {
-  useEntitiesStore,
-  usePeersStore,
-  usePlayerStore,
+    useEntitiesStore,
+    usePeersStore,
+    usePlayerStore,
 } from '~/stores/stores'
+import { config } from './config'
 
 export const usePeer: () => void = () => {
   let peer: Peer | null = null
@@ -17,117 +18,65 @@ export const usePeer: () => void = () => {
   const [entities, entityActions] = useEntitiesStore()
   const [connection, setConnection] = createSignal<DataConnection | null>(null)
 
+  async function createPeer(me: User, host: User) {
+    try {
+      peerActions.setState('stage', 'initiating')
+      peer = await new Promise<Peer>((resolve, reject) => {
+        const id = me?.id
+        if (!id) {
+          reject()
+        }
+        const p = new Peer(me?.id, {
+          config,
+        })
+        p.on('open', () => {
+          resolve(p)
+        })
+        p.on('error', (e) => {
+          reject(e)
+        })
+      })
+      peerActions.setState('stage', 'initiated')
+
+      if (me.id === host.id) {
+        const conn = await new Promise<DataConnection>((resolve, reject) => {
+          ;(peer as Peer).on('connection', (_conn) => {
+            console.log('conn received', _conn)
+            resolve(_conn)
+          })
+        })
+        setConnection(conn)
+      } else {
+        const conn = peer.connect(host.id)
+        setConnection(conn)
+      }
+      peerActions.setState('stage', 'connected')
+    } catch (error) {
+      toast({
+        message: `fail to init, most possibly unstable network issue, please have a try later\n${
+          error as string
+        }`,
+        duration: false,
+        controls: [
+          {
+            title: 'Retry',
+            action: () => {
+              createPeer(me,host)
+            },
+          },
+        ],
+      })
+      peerActions.setState({ stage: 'failed' })
+    }
+    return peer
+  }
+
   // todo: connection 改写为 createResource 的形式？
 
   createEffect(async () => {
     if (state.host && state.me) {
       if (!peer) {
-        try {
-          peerActions.setState('stage', 'initiating')
-          peer = await new Promise<Peer>((resolve, reject) => {
-            const id = state.me?.id
-            if (!id) {
-              reject()
-            }
-            const p = new Peer(state.me?.id as string, {
-              config: {
-                // iceTransportPolicy: 'relay',
-                iceServers: [
-                  // {
-                  //   urls: 'stun:hk-turn1.xirsys.com',
-                  // },
-                  // {
-                  //   urls: 'stun:stun.softjoys.com',
-                  // },
-                  // {
-                  //   urls: 'stun:stun.voipbuster.com:3478',
-                  // },
-                  {
-                    username:
-                      'EvcKbZMh4KduyQon1Bessr9YSruwyUJ9Jb2jHeCRp1pZwNGMauzxecSVJE0bIvmcAAAAAGWWTJBodWF5ZW1hbw==',
-                    urls: [
-                      'stun:hk-turn1.xirsys.com',
-                      'turn:hk-turn1.xirsys.com:80?transport=udp',
-                      'turn:hk-turn1.xirsys.com:3478?transport=udp',
-                      'turn:hk-turn1.xirsys.com:80?transport=tcp',
-                      'turn:hk-turn1.xirsys.com:3478?transport=tcp',
-                      'turns:hk-turn1.xirsys.com:443?transport=tcp',
-                      'turns:hk-turn1.xirsys.com:5349?transport=tcp',
-                    ],
-                    credential: '6568f5f6-aac8-11ee-9a24-0242ac120004',
-                  },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turn:hk-turn1.xirsys.com:80?transport=udp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turn:hk-turn1.xirsys.com:3478?transport=udp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turn:hk-turn1.xirsys.com:80?transport=tcp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turn:hk-turn1.xirsys.com:3478?transport=tcp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turns:hk-turn1.xirsys.com:443?transport=tcp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                  // {
-                  //   username:
-                  //     '3NV43Qdd5R_-W4Xo2P8T3DQcY_we0vczKqZizyY7f50zA5dVfQzc61D-_03r0h1NAAAAAGWWNUpodWF5ZW1hbw==',
-                  //   url: 'turns:hk-turn1.xirsys.com:5349?transport=tcp',
-                  //   credential: '861816d2-aaba-11ee-9bee-0242ac120004',
-                  // },
-                ],
-              },
-            })
-            p.on('open', () => {
-              resolve(p)
-            })
-            p.on('error', (e) => {
-              reject(e)
-            })
-          })
-          peerActions.setState('stage', 'initiated')
-
-          if (state.me.id === state.host.id) {
-            const conn = await new Promise<DataConnection>(
-              (resolve, reject) => {
-                ;(peer as Peer).on('connection', (_conn) => {
-                  console.log('conn received', _conn)
-                  resolve(_conn)
-                })
-              },
-            )
-            setConnection(conn)
-          } else {
-            const conn = peer.connect(state.host.id)
-            setConnection(conn)
-          }
-          peerActions.setState('stage', 'connected')
-        } catch (error) {
-          toast({
-            message: `fail to init, most possibly unstable network issue, please have a try later\n${
-              error as string
-            }`,
-            duration: false,
-          })
-          peerActions.setState({ stage: 'failed' })
-        }
+        peer = await createPeer(state.me, state.host)
       } else {
         peer.disconnect()
         peer.destroy()
@@ -237,7 +186,7 @@ export const usePeer: () => void = () => {
       })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
-          comingTracks: { id: string; name: string; duration: number }[],
+          comingTracks: readonly Readonly<{ id: string; name: string; duration: number }>[],
           existingTracks: { id: string; name: string; duration: number }[],
         ) {
           for (const t of comingTracks) {

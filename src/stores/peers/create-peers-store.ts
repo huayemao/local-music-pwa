@@ -20,7 +20,7 @@ export type PlayerStateMessage = {
     time: number
   }
 }
-interface User {
+export interface User {
   displayName: string
   id: string
 }
