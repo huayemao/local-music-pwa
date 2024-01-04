@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid'
 import { batch } from 'solid-js'
 import { createStore, produce, SetStoreFunction } from 'solid-js/store'
 import { toast } from '~/components/toast/toast'
-import { getFilesFromDirectory } from '../../helpers/file-system'
+import { getFilesFromDirectory } from '~/helpers/file-system'
 import { tracksParser } from '../../helpers/tracks-file-parser/tracks-file-parser'
 import { UNKNOWN_ITEM_ID } from '../../types/constants'
 import {
@@ -125,7 +125,9 @@ export const createEntitiesStore = () => {
     return uniqueTracks
   }
 
-  const addNewTracks = async (tracks: readonly UnknownTrack[] | Track[]) => {
+  const addNewTracks = async (
+    tracks: readonly UnknownTrack[] | Track[],
+  ): Promise<Track[]> => {
     const newTracks = await filterExistingTracks(tracks)
 
     setState(
@@ -190,9 +192,10 @@ export const createEntitiesStore = () => {
         }
       }),
     )
+    return Object.values(state.tracks) as Track[]
   }
 
-  async function parseTracks(files: FileWrapper[]): Promise<UnknownTrack[]> {
+  async function parseAndAddTracks(files: FileWrapper[]): Promise<Track[]> {
     const toastID = nanoid()
     const baseToastOptions = {
       id: toastID,
@@ -217,17 +220,21 @@ export const createEntitiesStore = () => {
         },
       )
 
-      batch(() => {
-        addNewTracks(newTracks)
-        toast({
-          ...baseToastOptions,
-          message: `Successfully imported or uptated ${newTracks.length} tracks to the library.`,
-          duration: 8000,
-          controls: undefined,
+      return new Promise((resolve, reject) => {
+        batch(() => {
+          addNewTracks(newTracks)
+            .then((list) => {
+              toast({
+                ...baseToastOptions,
+                message: `Successfully imported or uptated ${newTracks.length} tracks to the library.`,
+                duration: 8000,
+                controls: undefined,
+              })
+              resolve(list)
+            })
+            .catch(reject)
         })
       })
-
-      return newTracks
     } catch (err) {
       console.error(err)
       toast({
@@ -262,7 +269,7 @@ export const createEntitiesStore = () => {
       return
     }
 
-    await parseTracks(files)
+    await parseAndAddTracks(files)
   }
 
   const clearData = () => {
@@ -304,7 +311,7 @@ export const createEntitiesStore = () => {
     remove,
     importTracks,
     clearData,
-    parseTracks,
+    parseTracks: parseAndAddTracks,
   }
 
   return [

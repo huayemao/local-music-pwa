@@ -187,7 +187,7 @@ export const usePeer: () => void = () => {
       conn.on('data', (d) => {
         async function updateLocalTrackIds(
           comingTracks: readonly Readonly<{ id: string; name: string; duration: number }>[],
-          existingTracks: { id: string; name: string; duration: number }[],
+          existingTracks: { id?: string; name: string; duration: number }[],
         ) {
           for (const t of comingTracks) {
             for (const track of existingTracks) {
@@ -206,9 +206,12 @@ export const usePeer: () => void = () => {
                   ...originalTrack,
                   id: t.id,
                 }
-                console.log(`d ${track.id}`)
+                console.log(`d ${track.id || ''}`)
                 console.log(`a ${t.id}`)
-                entityActions.removeTracks([track.id])
+
+                if(track.id){
+                    entityActions.removeTracks([track.id])
+                }
                 // 需要先刪除，否则会由于文件名重复导致无法创建成功
                 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
@@ -254,11 +257,8 @@ export const usePeer: () => void = () => {
           const file = new File([blob], 'import')
           entityActions.parseTracks([{ type: 'file', file }]).then((tracks) => {
             if (state.hostPlayerSateMessage) {
-              // ts-ignore
               updateLocalTrackIds(
                 state.hostPlayerSateMessage.meta.tracks,
-                // 这个东西总是空，不会更新？或者是由于顺序问题？文件发送是并发的，来不及更新。。。
-                // 并不是,parse 完了是有
                 Object.values(tracks),
               ).then(() => {
                 receiveQueue.push(1)
