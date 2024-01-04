@@ -194,12 +194,20 @@ export const usePeer: () => void = () => {
             }
           }
         }
+        // @ts-ignore
+        else if (d.type === 'user') {
+          const { data } = d as {
+            type: string
+            data: { displayname: string; id: string }
+          }
+          peerActions.setState('members', data.id, data)
+        }
       })
       conn.on('error', console.error)
     } else {
       conn.on('open', () => {
         console.log('conn opened')
-        conn.send(state.me)
+        conn.send({ type: 'user', data: state.me })
       })
       conn.on('data', (d) => {
         async function updateLocalTrackIds(

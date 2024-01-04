@@ -77,6 +77,7 @@ export const createPeersStore = () => {
     join,
     createRoom,
     setHostPlayerState,
+    setState
   }
 
   return [state, actions] as const
