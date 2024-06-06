@@ -315,13 +315,28 @@ export const createPlayerStore = () => {
     })
   }
 
-  const syncFromHost = () => {
+  const syncFromHost = (isInit = false, offset = 0) => {
     if (peer.hostPlayerSateMessage) {
       const { data, meta } = peer.hostPlayerSateMessage
+      if (isInit) {
+        setState({
+          ...data,
+          isPlaying: false,
+        })
+        setTimeout(() => {
+          setState({
+            ...data,
+            currentTime:
+              data.currentTime + offset + (Date.now() - meta.time) / 1000,
+          })
+        }, 1000)
+      }
+
       // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
       setState({
         ...data,
-        currentTime: data.currentTime + 0.25 + (Date.now() - meta.time) / 1000,
+        currentTime:
+          data.currentTime + offset + (Date.now() - meta.time) / 1000,
       })
     }
   }

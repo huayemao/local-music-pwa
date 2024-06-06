@@ -25,7 +25,7 @@ function getTrackId(
       return track.id
     }
   }
-  throw Error("cannot find matching track")
+  throw Error('cannot find matching track')
 }
 
 export const usePeer: () => void = () => {
@@ -264,10 +264,10 @@ export const usePeer: () => void = () => {
                   trackIds: lackTracks,
                 },
               })
+            } else {
+              playerActions.syncFromHost()
             }
           })
-
-          playerActions.syncFromHost()
         }
 
         if (d instanceof Uint8Array) {
@@ -285,6 +285,7 @@ export const usePeer: () => void = () => {
                 id,
               }
             })
+            console.log(newTracks)
             entityActions.addNewTracks(newTracks).then(() => {
               receiveQueue.push(1)
               toast({
@@ -292,14 +293,18 @@ export const usePeer: () => void = () => {
                 duration: 4000,
                 controls: undefined,
               })
+
               if (receiveQueue.length === 1) {
-                playerActions.syncFromHost()
+                playerActions.syncFromHost(true)
               }
             })
           })
         }
       })
-      conn.on('error', console.error)
+      conn.on('error', (e) => {
+        console.error(e.message)
+        peerActions.setState('stage', 'failed')
+      })
     }
   })
 
