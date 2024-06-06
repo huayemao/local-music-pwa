@@ -118,13 +118,13 @@ export const createPlayerStore = () => {
         }
       }
     })
-
     // Set isPlaying to true if track exists.
     setState('isPlaying', !!state.activeTrack)
   }
 
   const playNextTrack = (playUnlessLastTrack = false) => {
     const { trackIds, activeTrackIndex } = state
+    console.log(state)
     const len = trackIds.length
 
     if (!len) {
@@ -174,6 +174,14 @@ export const createPlayerStore = () => {
     }
 
     playTrack(newIndex)
+  }
+
+  const playRandomTrack = () => {
+    const list = Object.values(entities.tracks)
+    playTrack(
+      Math.floor(Math.random() * list.length),
+      list.map((t) => t.id),
+    )
   }
 
   const addTracksToQueue = (trackIds: TrackIds) => {
@@ -364,6 +372,7 @@ export const createPlayerStore = () => {
     playTrack,
     playNextTrack,
     playPreveousTrack,
+    playRandomTrack,
     addTracksToQueue,
     removeFromQueue,
     clearQueue,

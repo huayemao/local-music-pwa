@@ -351,6 +351,7 @@ export const usePeer: () => void = () => {
     }
 
     if (conn.open) {
+      console.log(data)
       conn.send(data)
     }
   })
