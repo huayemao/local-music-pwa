@@ -1,5 +1,6 @@
 import { setElementVars } from '@vanilla-extract/dynamic'
 import { createEffect } from 'solid-js'
+import { useLocation } from 'solid-app-router'
 import { toast } from '~/components/toast/toast'
 import { usePeer } from '~/peer/create-peer'
 import { colorsTheme } from '~/styles/vars.css'
@@ -15,6 +16,7 @@ export const useSetupApp = (): void => {
   usePeer()
 
   const [playerState] = usePlayerStore()
+  const location = useLocation()
 
   const isDarkTheme = useDarkThemeEnabled()
 
@@ -41,10 +43,14 @@ export const useSetupApp = (): void => {
       return
     }
 
+    const { pathname } = location
+
     import('~/helpers/app-theme').then((module) => {
       const scheme = module.getAppTheme(argb, isDark)
       setElementVars(doc, colorsTheme, scheme)
-      titlebarElement.content = scheme.surface
+
+      titlebarElement.content =
+        pathname === '/player' ? scheme.secondaryContainer : scheme.surface
     })
   })
 
